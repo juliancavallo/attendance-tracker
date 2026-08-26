@@ -15,8 +15,19 @@
           <span class="brand-mark" aria-hidden="true">40</span>
           <span>Ofi<span>40%</span></span>
         </a>
-        <p class="storage-note">Tus datos quedan en este dispositivo</p>
+        <button class="account-button" id="account-button" type="button">Iniciar sesión</button>
       </header>
+
+      <section class="auth-panel" id="auth-panel" hidden>
+        <form id="auth-form">
+          <label for="email">Sincronizá tu historial con tu email</label>
+          <div class="auth-form-row">
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required />
+            <button type="submit">Enviar link</button>
+          </div>
+        </form>
+        <p id="auth-status" role="status"></p>
+      </section>
 
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">ASISTENCIA HÍBRIDA</p>
@@ -79,6 +90,7 @@
 
       <p class="api-status" id="api-status" role="status"></p>
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./app.js"></script>
   </body>
 </html>

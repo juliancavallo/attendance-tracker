@@ -10,4 +10,10 @@ Calendario personal para llevar el control de asistencia a la oficina: calcula e
 
 No requiere un servidor ni variables de entorno. La aplicación consulta `https://api.argentinadatos.com/v1/feriados/{año}` y conserva una copia de los feriados por año para poder seguir funcionando si no hay conexión.
 
-> La asistencia y las vacaciones se guardan solamente en el almacenamiento local de cada navegador. No se sincronizan entre dispositivos.
+## Sincronización con Supabase
+
+1. En el proyecto de Supabase, abrí **SQL Editor** y ejecutá el contenido de [`supabase.sql`](./supabase.sql).
+2. En **Authentication → URL Configuration**, configurá la Site URL y Redirect URL con la dirección pública de esta aplicación.
+3. En **Authentication → Providers → Email**, verificá que el acceso por email esté habilitado.
+
+La aplicación conserva una copia local y sincroniza el histórico al iniciar sesión mediante un link mágico enviado por email.

@@ -24,7 +24,14 @@ button { font: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-size: 1.15rem; font-weight: 800; letter-spacing: -.055em; }
 .brand > span:last-child span { color: var(--green); }
 .brand-mark { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 10px; background: var(--green); color: white; font-size: .72rem; letter-spacing: -.08em; }
-.storage-note { margin: 0; color: var(--muted); font-size: .7rem; }
+.account-button { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: var(--card); color: var(--green); font-size: .7rem; font-weight: 700; cursor: pointer; }
+.account-button.is-signed-in { border-color: #a6cdb6; background: var(--green-light); }
+.auth-panel { margin-top: 16px; padding: 14px; border: 1px solid #cfe2d5; border-radius: 14px; background: #f3faf5; }
+.auth-panel label { display: block; margin-bottom: 9px; font-size: .76rem; font-weight: 700; }
+.auth-form-row { display: flex; gap: 8px; }
+.auth-form-row input { min-width: 0; flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; background: white; color: var(--ink); font: inherit; font-size: .8rem; }
+.auth-form-row button { border: 0; border-radius: 9px; padding: 9px 12px; background: var(--green); color: white; font-size: .76rem; font-weight: 700; cursor: pointer; }
+.auth-panel p { margin: 9px 0 0; color: var(--muted); font-size: .7rem; }
 
 .intro { margin: 54px 0 30px; }
 .eyebrow { margin: 0 0 8px; color: var(--green); font-weight: 800; font-size: .68rem; letter-spacing: .11em; }
@@ -93,4 +100,5 @@ h1 em { color: var(--green); font-weight: 500; }
   .quick-actions { grid-template-columns: 1fr; }
   .quick-actions button { min-height: 63px; }
   .day { min-height: 38px; padding: 6px; }
+  .auth-form-row { flex-direction: column; }
 }

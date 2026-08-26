@@ -1,0 +1,96 @@
+:root {
+  --ink: #17231c;
+  --muted: #697269;
+  --line: #dce2da;
+  --paper: #fbfcf8;
+  --card: #ffffff;
+  --green: #0d6b45;
+  --green-light: #dcefe4;
+  --lime: #c8e55c;
+  --sand: #f3efe6;
+  --holiday: #f5e2d5;
+  --vacation: #eee6fa;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button { font: inherit; }
+
+.app-shell { width: min(100%, 720px); margin: 0 auto; padding: 22px 20px 44px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-size: 1.15rem; font-weight: 800; letter-spacing: -.055em; }
+.brand > span:last-child span { color: var(--green); }
+.brand-mark { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 10px; background: var(--green); color: white; font-size: .72rem; letter-spacing: -.08em; }
+.storage-note { margin: 0; color: var(--muted); font-size: .7rem; }
+
+.intro { margin: 54px 0 30px; }
+.eyebrow { margin: 0 0 8px; color: var(--green); font-weight: 800; font-size: .68rem; letter-spacing: .11em; }
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 8vw, 3.1rem); line-height: 1.03; letter-spacing: -.055em; font-weight: 500; }
+h1 em { color: var(--green); font-weight: 500; }
+
+.month-navigation { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; margin-bottom: 16px; text-align: center; }
+.month-navigation h2 { margin: 0; text-transform: capitalize; font-size: 1.12rem; letter-spacing: -.03em; }
+.month-navigation p { margin: 3px 0 0; color: var(--muted); font-size: .75rem; }
+.icon-button { width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 1.4rem; cursor: pointer; transition: background .15s; }
+.icon-button:hover { background: var(--green-light); }
+
+.progress-card { border-radius: 20px; padding: 21px; background: var(--green); color: white; box-shadow: 0 10px 28px rgba(13, 107, 69, .12); }
+.progress-card__header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.progress-card .eyebrow { color: var(--lime); margin-bottom: 5px; }
+.progress-copy { margin: 0; font-size: 1rem; }
+.progress-copy strong { font-size: 1.34rem; letter-spacing: -.05em; }
+.percentage { color: var(--lime); line-height: 1; font-weight: 800; }
+.percentage span { font-size: 2.1rem; letter-spacing: -.08em; }
+.percentage small { font-size: .9rem; }
+.progress-track { height: 9px; overflow: hidden; margin: 16px 0 9px; border-radius: 999px; background: rgba(255,255,255,.24); }
+.progress-fill { height: 100%; width: 0; border-radius: inherit; background: var(--lime); transition: width .25s ease; }
+.progress-message { margin: 0; color: #e3f1e8; font-size: .79rem; }
+
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0 9px; }
+.quick-actions button { display: flex; align-items: flex-start; gap: 10px; min-height: 78px; padding: 14px; border-radius: 14px; text-align: left; cursor: pointer; }
+.primary-action { border: 1px solid var(--green); background: var(--green); color: white; }
+.mode-action { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.mode-action.is-active { border-color: #7d62b8; background: var(--vacation); }
+.quick-actions strong, .quick-actions small { display: block; }
+.quick-actions strong { font-size: .79rem; line-height: 1.15; }
+.quick-actions small { margin-top: 4px; opacity: .8; font-size: .66rem; line-height: 1.28; }
+.action-icon { display: grid; flex: 0 0 28px; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: rgba(255,255,255,.16); font-weight: 800; }
+.mode-action .action-icon { background: var(--sand); color: #695095; }
+.interaction-help { min-height: 20px; margin: 0 2px 23px; color: var(--muted); font-size: .72rem; }
+
+.calendar-section { padding: 18px 0 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.calendar-heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.calendar-heading h2 { margin: 0; font-size: .96rem; letter-spacing: -.025em; }
+.calendar-heading span { color: var(--muted); font-size: .7rem; }
+.weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.weekdays { margin-bottom: 7px; color: var(--muted); text-align: center; font-size: .62rem; font-weight: 700; }
+.day { position: relative; display: flex; align-items: flex-start; justify-content: flex-start; aspect-ratio: 1 / .92; min-height: 41px; padding: 7px; border: 0; border-radius: 11px; background: transparent; color: var(--ink); text-align: left; font-size: .76rem; cursor: pointer; }
+.day--empty { pointer-events: none; }
+.day--weekend { background: #f6f7f4; color: #a4aaa4; cursor: default; }
+.day--holiday { background: var(--holiday); color: #8a5333; cursor: default; }
+.day--attended { background: var(--green); color: white; }
+.day--vacation { background: var(--vacation); color: #5f488c; }
+.day--today { outline: 2px solid var(--lime); outline-offset: 1px; }
+.day:not(.day--weekend):not(.day--holiday):hover { outline: 1px solid var(--green); outline-offset: 1px; }
+.day .marker { position: absolute; right: 6px; bottom: 5px; font-size: .66rem; font-weight: 800; }
+.day .holiday-label { position: absolute; bottom: 4px; left: 7px; right: 4px; overflow: hidden; color: #9a6040; font-size: .48rem; line-height: 1.1; white-space: nowrap; text-overflow: ellipsis; }
+.day--attended .marker { color: var(--lime); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 15px 0 20px; color: var(--muted); font-size: .68rem; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; background: #f6f7f4; }
+.legend-dot.attended { background: var(--green); }.legend-dot.vacation { background: #b9a5e1; }.legend-dot.holiday { background: #dfa27a; }.legend-dot.weekend { background: #d7dcd6; }
+.api-status { min-height: 18px; margin: 0; color: var(--muted); font-size: .66rem; text-align: center; }
+.api-status.is-warning { color: #a14c2f; }
+
+@media (max-width: 460px) {
+  .app-shell { padding-inline: 16px; }
+  .intro { margin-top: 43px; }
+  .quick-actions { grid-template-columns: 1fr; }
+  .quick-actions button { min-height: 63px; }
+  .day { min-height: 38px; padding: 6px; }
+}

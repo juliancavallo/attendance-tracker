@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#18251e" />
+    <title>Ofi 40%</title>
+    <link rel="preconnect" href="https://api.argentinadatos.com" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Ofi 40%, inicio">
+          <span class="brand-mark" aria-hidden="true">40</span>
+          <span>Ofi<span>40%</span></span>
+        </a>
+        <p class="storage-note">Tus datos quedan en este dispositivo</p>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">ASISTENCIA HÍBRIDA</p>
+        <h1 id="page-title">Tu mes en la oficina,<br /><em>sin hacer cuentas.</em></h1>
+      </section>
+
+      <section class="month-navigation" aria-label="Navegación mensual">
+        <button class="icon-button" id="previous-month" aria-label="Mes anterior">←</button>
+        <div>
+          <h2 id="month-title">Cargando mes…</h2>
+          <p id="month-subtitle"></p>
+        </div>
+        <button class="icon-button" id="next-month" aria-label="Mes siguiente">→</button>
+      </section>
+
+      <section class="progress-card" aria-label="Progreso mensual">
+        <div class="progress-card__header">
+          <div>
+            <p class="eyebrow">OBJETIVO DEL MES</p>
+            <p class="progress-copy"><strong id="attendance-count">0</strong> de <strong id="required-count">0</strong> días</p>
+          </div>
+          <div class="percentage" aria-label="0 por ciento completado"><span id="progress-percent">0</span><small>%</small></div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="progress-label">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p class="progress-message" id="progress-label"></p>
+      </section>
+
+      <section class="quick-actions" aria-label="Acciones rápidas">
+        <button class="primary-action" id="mark-today" type="button">
+          <span class="action-icon" aria-hidden="true">✓</span>
+          <span><strong>Hoy voy a la ofi</strong><small id="today-label">Marcá tu asistencia de hoy</small></span>
+        </button>
+        <button class="mode-action" id="vacation-mode" type="button" aria-pressed="false">
+          <span class="action-icon" aria-hidden="true">☼</span>
+          <span><strong>Marcar vacaciones</strong><small>Elegí días directamente en el calendario</small></span>
+        </button>
+      </section>
+
+      <p class="interaction-help" id="interaction-help">Tocá un día laboral pasado para registrar que fuiste a la oficina.</p>
+
+      <section class="calendar-section" aria-labelledby="calendar-heading">
+        <div class="calendar-heading">
+          <h2 id="calendar-heading">Calendario</h2>
+          <span id="calculable-days">0 días calculables</span>
+        </div>
+        <div class="weekdays" aria-hidden="true">
+          <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid" aria-label="Días del mes"></div>
+      </section>
+
+      <section class="legend" aria-label="Referencias del calendario">
+        <span><i class="legend-dot attended"></i>Fui a la ofi</span>
+        <span><i class="legend-dot vacation"></i>Vacaciones</span>
+        <span><i class="legend-dot holiday"></i>Feriado</span>
+        <span><i class="legend-dot weekend"></i>Fin de semana</span>
+      </section>
+
+      <p class="api-status" id="api-status" role="status"></p>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

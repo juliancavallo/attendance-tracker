@@ -1,6 +1,7 @@
 const HOLIDAYS_API = 'https://api.argentinadatos.com/v1/feriados';
 const STORAGE_KEY = 'ofi40-state-v1';
 const HOLIDAY_CACHE_PREFIX = 'ofi40-holidays-';
+const HOLIDAY_CACHE_DURATION_MONTHS = 3;
 
 const state = loadState();
 let displayedDate = firstDayOfMonth(new Date());
@@ -59,23 +60,49 @@ function persistState() {
 async function loadHolidays(year) {
   const cacheKey = `${HOLIDAY_CACHE_PREFIX}${year}`;
   els.apiStatus.classList.remove('is-warning');
+  const cachedHolidays = getHolidayCache(cacheKey);
+
+  if (cachedHolidays?.isFresh) {
+    holidays = cachedHolidays.holidays;
+    els.apiStatus.textContent = 'Feriados cargados desde el caché local.';
+    return;
+  }
+
   els.apiStatus.textContent = 'Actualizando feriados…';
 
   try {
     const response = await fetch(`${HOLIDAYS_API}/${year}`);
     if (!response.ok) throw new Error(`API respondió ${response.status}`);
     holidays = await response.json();
-    localStorage.setItem(cacheKey, JSON.stringify(holidays));
+    localStorage.setItem(cacheKey, JSON.stringify(createHolidayCache(holidays)));
     els.apiStatus.textContent = 'Feriados nacionales actualizados desde ArgentinaDatos.';
   } catch {
-    try {
-      holidays = JSON.parse(localStorage.getItem(cacheKey)) || [];
-    } catch { holidays = []; }
+    holidays = cachedHolidays?.holidays || [];
     els.apiStatus.classList.add('is-warning');
     els.apiStatus.textContent = holidays.length
-      ? 'Sin conexión: se usan los feriados guardados en este dispositivo.'
+      ? 'Sin conexión: se usan los feriados guardados, aunque su caché haya vencido.'
       : 'No se pudieron cargar los feriados. Revisá tu conexión e intentá de nuevo.';
   }
+}
+
+function getHolidayCache(cacheKey) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey));
+    if (Array.isArray(cached)) return { holidays: cached, isFresh: false };
+    if (!Array.isArray(cached?.holidays)) return null;
+    return {
+      holidays: cached.holidays,
+      isFresh: Number.isFinite(cached.expiresAt) && cached.expiresAt > Date.now(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function createHolidayCache(holidayList) {
+  const expiresAt = new Date();
+  expiresAt.setMonth(expiresAt.getMonth() + HOLIDAY_CACHE_DURATION_MONTHS);
+  return { holidays: holidayList, cachedAt: Date.now(), expiresAt: expiresAt.getTime() };
 }
 
 async function changeMonth(offset) {

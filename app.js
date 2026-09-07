@@ -1,16 +1,12 @@
-const HOLIDAYS_API = 'https://api.argentinadatos.com/v1/feriados';
-const STORAGE_KEY = 'ofi40-state-v1';
 const HOLIDAY_CACHE_PREFIX = 'ofi40-holidays-';
 const HOLIDAY_CACHE_DURATION_MONTHS = 3;
-const SUPABASE_URL = 'https://hlwuzvaanjrpwuusnthx.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_omvQr_60WyVdzgtBKDcj2w_I-FcUCSP';
+const API_BASE_URL = window.OFI40_API_BASE_URL || '';
 
-const state = loadState();
+const state = { attendance: new Set(), vacations: new Set() };
 let displayedDate = firstDayOfMonth(new Date());
 let holidays = [];
 let vacationMode = false;
 let currentUser = null;
-const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const els = {
   monthTitle: document.querySelector('#month-title'),
@@ -51,35 +47,30 @@ async function initialize() {
 }
 
 async function initializeSupabase() {
-  if (!supabaseClient) {
-    setAuthStatus('No se pudo iniciar la sincronización. Recargá la página.', true);
-    return;
+  try {
+    const data = await apiRequest('/v1/auth/session');
+    currentUser = data.user;
+  } catch (error) {
+    if (error.status !== 401) setAuthStatus('No se pudo recuperar tu sesión.', true);
   }
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) setAuthStatus('No se pudo recuperar tu sesión.', true);
-  currentUser = data.session?.user || null;
   updateAccountControls();
   if (currentUser) {
-    await syncLocalStateToCloud();
-    await syncFromCloud();
+    await loadAttendanceForDisplayedMonth();
   }
-  supabaseClient.auth.onAuthStateChange((event, session) => {
-    currentUser = session?.user || null;
-    updateAccountControls();
-    if (event === 'SIGNED_IN' && currentUser) {
-      setTimeout(async () => {
-        await syncLocalStateToCloud();
-        await syncFromCloud();
-        render();
-      }, 0);
-    }
-  });
 }
 
 async function handleAccountButton() {
   if (currentUser) {
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) setAuthStatus('No se pudo cerrar la sesión.', true);
+    try {
+      await apiRequest('/v1/auth/logout', { method: 'POST' });
+      currentUser = null;
+      state.attendance.clear();
+      state.vacations.clear();
+      updateAccountControls();
+      render();
+    } catch {
+      setAuthStatus('No se pudo cerrar la sesión.', true);
+    }
     return;
   }
   els.authPanel.hidden = !els.authPanel.hidden;
@@ -88,14 +79,14 @@ async function handleAccountButton() {
 
 async function sendMagicLink(event) {
   event.preventDefault();
-  if (!supabaseClient) return;
   setAuthStatus('Enviando link de acceso…');
-  const { error } = await supabaseClient.auth.signInWithOtp({
-    email: els.email.value,
-    options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
-  });
-  if (error) {
-    setAuthStatus(error.message, true);
+  try {
+    await apiRequest('/v1/auth/magic-link', {
+      method: 'POST',
+      body: JSON.stringify({ email: els.email.value }),
+    });
+  } catch (error) {
+    setAuthStatus(error.message || 'No se pudo enviar el link de acceso.', true);
     return;
   }
   setAuthStatus('Revisá tu email y abrí el link para sincronizar tu historial.');
@@ -117,66 +108,67 @@ function setAuthStatus(message, isError = false) {
   els.authStatus.style.color = isError ? '#a14c2f' : '';
 }
 
-function loadState() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return {
-      attendance: new Set(saved?.attendance || []),
-      vacations: new Set(saved?.vacations || []),
-    };
-  } catch {
-    return { attendance: new Set(), vacations: new Set() };
-  }
-}
-
-function persistState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    attendance: [...state.attendance],
-    vacations: [...state.vacations],
-  }));
-}
-
-async function syncLocalStateToCloud() {
-  if (!currentUser) return;
-  const records = [
-    ...[...state.attendance].map((work_date) => ({ user_id: currentUser.id, work_date, status: 'office' })),
-    ...[...state.vacations].map((work_date) => ({ user_id: currentUser.id, work_date, status: 'vacation' })),
-  ];
-  if (!records.length) return;
-  const { error } = await supabaseClient
-    .from('attendance_entries')
-    .upsert(records, { onConflict: 'user_id,work_date' });
-  if (error) setAuthStatus(`No se pudo sincronizar el historial: ${error.message}`, true);
-}
-
-async function syncFromCloud() {
-  if (!currentUser) return;
-  const { data, error } = await supabaseClient
-    .from('attendance_entries')
-    .select('work_date, status')
-    .eq('user_id', currentUser.id);
-  if (error) {
-    setAuthStatus(`No se pudo descargar el historial: ${error.message}`, true);
-    return;
-  }
-  state.attendance.clear();
-  state.vacations.clear();
-  data.forEach((entry) => {
-    if (entry.status === 'office') state.attendance.add(entry.work_date);
-    if (entry.status === 'vacation') state.vacations.add(entry.work_date);
-  });
-  persistState();
-  setAuthStatus('Historial sincronizado con tu cuenta.');
-}
-
 async function syncChangedEntry(key) {
   if (!currentUser) return;
   const status = state.attendance.has(key) ? 'office' : state.vacations.has(key) ? 'vacation' : null;
-  const query = status
-    ? supabaseClient.from('attendance_entries').upsert({ user_id: currentUser.id, work_date: key, status }, { onConflict: 'user_id,work_date' })
-    : supabaseClient.from('attendance_entries').delete().eq('user_id', currentUser.id).eq('work_date', key);
-  const { error } = await query;
-  if (error) setAuthStatus(`No se pudo guardar el cambio: ${error.message}`, true);
+  try {
+    await apiRequest(`/v1/attendance/${key}`, status
+      ? { method: 'PUT', body: JSON.stringify({ status }) }
+      : { method: 'DELETE' });
+  } catch (error) {
+    setAuthStatus(`No se pudo guardar el cambio: ${error.message}`, true);
+  }
+}
+
+async function loadAttendanceForDisplayedMonth() {
+  if (!currentUser) return;
+  const year = displayedDate.getFullYear();
+  const month = displayedDate.getMonth();
+  const first = dateKey(year, month, 1);
+  const last = dateKey(year, month, new Date(year, month + 1, 0).getDate());
+  try {
+    const entries = await apiRequest(`/v1/attendance?from=${first}&to=${last}`);
+    for (const key of [...state.attendance, ...state.vacations]) {
+      if (key >= first && key <= last) {
+        state.attendance.delete(key);
+        state.vacations.delete(key);
+      }
+    }
+    entries.forEach((entry) => {
+      if (entry.status === 'office') state.attendance.add(entry.work_date);
+      if (entry.status === 'vacation') state.vacations.add(entry.work_date);
+    });
+    setAuthStatus('Historial sincronizado con tu cuenta.');
+  } catch (error) {
+    setAuthStatus(`No se pudo descargar el historial: ${error.message}`, true);
+  }
+}
+
+async function apiRequest(path, options = {}, retried = false) {
+  if (!API_BASE_URL) {
+    const error = new Error('Falta configurar la URL de la API.');
+    error.status = 503;
+    throw error;
+  }
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: 'include',
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  });
+  if (response.status === 401 && !retried && path !== '/v1/auth/refresh') {
+    const refresh = await fetch(`${API_BASE_URL}/v1/auth/refresh`, {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+    });
+    if (refresh.ok) return apiRequest(path, options, true);
+  }
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    const error = new Error(payload.detail || 'Error de conexión con la API.');
+    error.status = response.status;
+    throw error;
+  }
+  if (response.status === 204) return null;
+  return response.json();
 }
 
 async function loadHolidays(year) {
@@ -193,9 +185,7 @@ async function loadHolidays(year) {
   els.apiStatus.textContent = 'Actualizando feriados…';
 
   try {
-    const response = await fetch(`${HOLIDAYS_API}/${year}`);
-    if (!response.ok) throw new Error(`API respondió ${response.status}`);
-    holidays = await response.json();
+    holidays = await apiRequest(`/v1/holidays?year=${year}`);
     localStorage.setItem(cacheKey, JSON.stringify(createHolidayCache(holidays)));
     els.apiStatus.textContent = 'Feriados nacionales actualizados desde ArgentinaDatos.';
   } catch {
@@ -233,6 +223,7 @@ async function changeMonth(offset) {
   if (!holidays.length || !holidays.every((holiday) => holiday.fecha.startsWith(String(displayedDate.getFullYear())))) {
     await loadHolidays(displayedDate.getFullYear());
   }
+  if (currentUser) await loadAttendanceForDisplayedMonth();
   render();
 }
 
@@ -337,7 +328,6 @@ async function handleDayClick(key, info) {
     if (state.attendance.has(key)) state.attendance.delete(key);
     else state.attendance.add(key);
   }
-  persistState();
   render();
   await syncChangedEntry(key);
 }
@@ -349,7 +339,6 @@ async function markToday() {
   if (!info.isWorkday || state.vacations.has(key)) return;
   if (state.attendance.has(key)) state.attendance.delete(key);
   else state.attendance.add(key);
-  persistState();
   render();
   await syncChangedEntry(key);
 }
